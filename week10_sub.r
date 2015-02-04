@@ -26,16 +26,28 @@ for(i in 1:nrow(data))
   if(i%%6==0)
   {
     
-    data$hour[(i-5):i]<- i
+    data$counter[(i-5):i]<- i
     data$day[(i-5):i]<- yday(as.Date(data$DateTime[i], format="%m/%d/%Y"))
     
   }
   
 }
-data<-aggregate( . ~ hour, data = data[,-c(1)], sum)
+data$week <- week(as.Date(data$DateTime,format="%m/%d/%y"))
+data$month <- month(as.Date(data$DateTime,format="%m/%d/%y"))
+data$hour <- as.POSIXlt(data$DateTime,format="%m/%d/%y %H:%M")$hour
+data$hour[is.na(data$hour)]<-0
+
+demand_data$week <- week(as.Date(demand_data$DateTime,format="%Y-%m-%d %H:%M:%S"))
+demand_data$day <- yday(as.Date(demand_data$DateTime,format="%Y-%m-%d %H:%M:%S"))
+demand_data$month <- month(as.Date(demand_data$DateTime,format="%Y-%m-%d %H:%M:%S"))
+demand_data$hour <- as.POSIXlt(demand_data$DateTime,format="%Y-%m-%d %H:%M:%S")$hour
+demand_data$hour[is.na(demand_data$hour)]<-0
+
+
+data<-aggregate( . ~ counter, data = data[,-c(1)], sum)
 
 # setting right for columns such as min, max and avg wind speeds which cannot be added up
-data[c(1,16:18,20)] <- apply(data[c(1,16:18,20)], 1:2, function(x) as.integer(x/6))
+data[c(1,16:18,20:23)] <- apply(data[c(1,16:18,20:23)], 1:2, function(x) as.integer(x/6))
 
 #calculating new parameters: curtailes, uncurtailed power
 data$energy_prod <- (1/2000)*1.225*2174*7*(data$Avg_win)^3
@@ -47,9 +59,12 @@ data$curtailed_power<-data$uncurtailed_power-data$energy_prod
 data<-subset(data, data$Del >= 0)
 data<-subset(data, data$Del <= (850*7))
 
-
+#merge data
+demand_data$merged <- demand_data$day+ as.integer(demand_data$hour)/100
+data$merged <- data$day +as.integer(data$hour)/100
+total <- merge(data,demand_data,by=c("merged"))
 
 
 # save the data into a workspace 
 rm()
-save(demand_data,data,file="data_storage.RData")
+save(total,file="data_storage.RData")

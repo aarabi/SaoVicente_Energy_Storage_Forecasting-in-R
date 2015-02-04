@@ -1,21 +1,19 @@
 library(shiny)
-row_sub = apply(demand_data[2], 1, function(row) all(row !=0 ))
-##Subset as usual
-a= median(demand_data[row_sub,2])
+
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("Hello Shiny!"),
+  titlePanel("Set Baseload Value & Curtail Wind Energy!"),
   
   # Sidebar with a slider input for the number of bins
   sidebarLayout(
     sidebarPanel(
-      sliderInput("bins",
-                  "Number of bins:",
+      sliderInput("BaseLoad",
+                  "Set Baseload Value:",
                  
-                  min = a,
-                  max = 50,
+                  min = 5000,
+                  max = 7000,
                   value = 30)
     ),
     
@@ -24,4 +22,5 @@ shinyUI(fluidPage(
       plotOutput("distPlot")
     )
   )
+  
 ))

@@ -1,5 +1,5 @@
 library(shiny)
-
+library(ggplot2)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output)
   {
@@ -14,10 +14,16 @@ shinyServer(function(input, output)
   output$distPlot <- renderPlot(
     {
     x    <- faithful[, 2]  # Old Faithful Geyser data
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
+    #bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    bins <- input$BaseLoad
+    print(bins)
+    total$baseload<- bins
     # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    #hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    ggplot(data=total, aes(x= total$merged, y= total$Demand)) +
+      geom_point(aes(x= merged, y= Demand, color = "Demand"))  +
+      geom_point(aes(x= merged, y= baseload, color = "BaseLoad"))  +
+      geom_point(aes(x= merged, y= ifelse(Demand-baseload>Del,Del+baseload,Demand), color = "Wind Input"))
   }
   )
 })
