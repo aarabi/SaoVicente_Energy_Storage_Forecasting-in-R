@@ -3,7 +3,8 @@ load("data_storage.RData")
 
 require(ggplot2)
 require(shiny)
-
+week_data$curtail<-0
 
 runApp("myapp")
+
 

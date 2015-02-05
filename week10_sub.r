@@ -2,7 +2,7 @@ setwd("R:/projects/1 week thing/assign")
 library(gdata)
 library(plyr)
 library(ggplot2)
-library(reshape)
+library(reshape2)
 require(lubridate)
 
 
@@ -64,7 +64,38 @@ demand_data$merged <- demand_data$day+ as.integer(demand_data$hour)/100
 data$merged <- data$day +as.integer(data$hour)/100
 total <- merge(data,demand_data,by=c("merged"))
 
+#clean merged data
+remove_outliers<-quantile(total$Del, probs=0.1)
+total<-subset(total, total$Del > remove_outliers)
+total<-subset(total, total$Demand > remove_outliers)
+summary(total$Del)
+summary(total$Demand)
 
+#reshape data to suit needs
+#Long- to wide-format data: the cast function
+temp_subset<-total[,c(20:24,25,30)]
+week_Del<-  dcast(temp_subset,temp_subset$week ~ temp_subset$hour,fun.aggregate = mean, value.var="Del")
+colnames(week_Del) <- c("week",0:23)
+week_Del<-colMeans(week_Del,na.rm=TRUE)
+week_Del <-week_Del[-1]
+week_Demand<-   dcast(temp_subset,temp_subset$week ~ temp_subset$hour,fun.aggregate = mean, value.var="Demand")
+colnames(week_Demand) <- c("week",0:23)
+week_Demand<-colMeans(week_Demand,na.rm=TRUE)
+week_Demand<- week_Demand[-1]
+week_data<- cbind(week_Del,week_Demand)
+id <- rownames(week_data)
+week_data <- cbind(id=id, week_data)
+colnames(week_data) <- c("hour","Del","Demand")
+week_data<- as.data.frame(week_data)
+
+
+week_data$Del<- as.numeric(levels(week_data$Del))[week_data$Del]
+week_data$Demand<- as.numeric(levels(week_data$Demand))[week_data$Demand]
+week_data$hour<- as.numeric(levels(week_data$hour))[week_data$hour]
+week_data$baseload<- 3000
+
+
+  
 # save the data into a workspace 
 rm()
-save(total,file="data_storage.RData")
+save(total,week_data,file="data_storage.RData")
