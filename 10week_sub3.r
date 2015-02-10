@@ -5,6 +5,5 @@ require(ggplot2)
 require(shiny)
 
 
-runApp("myapp")
-
+runApp("setpoint")
 
